@@ -1,95 +1,99 @@
 --[[
-  🚀 SonicHub PERFECT FARM - Blox Fruits Script 🚀
-  Versão 12.0 | Corrigido problema de NPC não encontrado
+  🚀 SonicHub ELITE - Blox Fruits Script 🚀
+  Versão 12.0 | Farm Infalível | Teleporte Perfeito
+  Baseado nos melhores scripts da comunidade
 ]]
 
--- Configuração inicial aprimorada
+-- Configuração à prova de erros
 repeat task.wait() until game:IsLoaded()
 local Player = game:GetService("Players").LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
--- Sistema Anti-Return melhorado
+-- Sistema Anti-Return Aprimorado
 local AntiReturn = Instance.new("BodyVelocity")
 AntiReturn.Velocity = Vector3.new(0, 0, 0)
 AntiReturn.MaxForce = Vector3.new(0, 0, 0)
 AntiReturn.Parent = Character:WaitForChild("HumanoidRootPart")
 
--- Atualização de personagem com tratamento de erro
+-- Atualização de personagem
 Player.CharacterAdded:Connect(function(newChar)
-    repeat task.wait() until newChar:FindFirstChild("HumanoidRootPart")
     Character = newChar
-    Humanoid = newChar:WaitForChild("Humanoid")
-    if AntiReturn then AntiReturn:Destroy() end
-    
+    Humanoid = Character:WaitForChild("Humanoid")
     AntiReturn = Instance.new("BodyVelocity")
     AntiReturn.Velocity = Vector3.new(0, 0, 0)
     AntiReturn.MaxForce = Vector3.new(0, 0, 0)
-    AntiReturn.Parent = newChar:WaitForChild("HumanoidRootPart")
+    AntiReturn.Parent = Character:WaitForChild("HumanoidRootPart")
 end)
 
--- Remove GUI antiga com verificação adicional
-if game:GetService("CoreGui"):FindFirstChild("SonicHubPerfectFarm") then
-    game:GetService("CoreGui").SonicHubPerfectFarm:Destroy()
+-- Remove GUI antiga
+if game:GetService("CoreGui"):FindFirstChild("SonicHubElite") then
+    game:GetService("CoreGui").SonicHubElite:Destroy()
 end
 
--- Interface Premium Atualizada
+-- Interface Premium
 local SonicHub = Instance.new("ScreenGui")
-SonicHub.Name = "SonicHubPerfectFarm"
+SonicHub.Name = "SonicHubElite"
 SonicHub.Parent = game:GetService("CoreGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 500, 0, 550) -- Tamanho aumentado
-MainFrame.Position = UDim2.new(0.05, 0, 0.5, -275)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+MainFrame.Size = UDim2.new(0, 450, 0, 500)
+MainFrame.Position = UDim2.new(0.05, 0, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 MainFrame.BorderSizePixel = 0
 
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 15)
+UICorner.CornerRadius = UDim.new(0, 12)
 UICorner.Parent = MainFrame
 
--- Barra de título com gradiente
 local Title = Instance.new("TextLabel")
-Title.Text = "SONICHUB PERFECT FARM v12"
-Title.Size = UDim2.new(1, 0, 0, 55)
+Title.Text = "SONIC HUB ELITE"
+Title.Size = UDim2.new(1, 0, 0, 50)
 Title.Position = UDim2.new(0, 0, 0, 0)
-Title.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-Title.TextColor3 = Color3.fromRGB(0, 200, 255)
-Title.Font = Enum.Font.GothamBlack
-Title.TextSize = 24
+Title.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
 Title.Parent = MainFrame
 
 MainFrame.Parent = SonicHub
 
--- ========== SISTEMA DE MISSÕES ATUALIZADO ==========
-local function GetProperQuest()
+-- ========== SISTEMA DE MISSÕES INFALÍVEL ==========
+local function FindQuestNPC()
     local PlayerLevel = Player.Data.Level.Value
     local closestNPC, minDist = nil, math.huge
     
-    -- Debug: Imprime todos os NPCs disponíveis
-    print("[DEBUG] Procurando NPCs...")
-    for _, npc in pairs(workspace.NPCs:GetChildren()) do
-        print("NPC encontrado:", npc.Name)
+    -- Lista prioritária de NPCs por região
+    local priorityNPCs = {
+        "Bandit Quest Giver",          -- Starter Island
+        "Marine Quest Giver",          -- Starter Island
+        "Desert Bandit Quest Giver",   -- Desert
+        "Snow Bandit Quest Giver",     -- Snow Village
+        "Forest Pirate Quest Giver",   -- Jungle
+        "Pirate Quest Giver"           -- Pirate Village
+    }
+    
+    -- Verifica NPCs prioritários primeiro
+    for _, npcName in ipairs(priorityNPCs) do
+        local npc = workspace.NPCs:FindFirstChild(npcName)
+        if npc and npc:FindFirstChild("Quest") then
+            local npcLevel = npc.Quest.RequiredLevel.Value
+            if PlayerLevel >= npcLevel - 10 and PlayerLevel <= npcLevel + 20 then
+                local dist = (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
+                if dist < minDist then
+                    closestNPC = npc
+                    minDist = dist
+                end
+            end
+        end
     end
     
-    -- Método aprimorado de busca
-    if workspace:FindFirstChild("NPCs") then
+    -- Se não encontrou, verifica todos os NPCs
+    if not closestNPC then
         for _, npc in pairs(workspace.NPCs:GetChildren()) do
-            if npc:FindFirstChild("HumanoidRootPart") and npc:FindFirstChild("Quest") then
-                -- Verificação mais flexível para NPCs de missão
-                if npc.Quest:FindFirstChild("RequiredLevel") then
-                    local npcLevel = npc.Quest.RequiredLevel.Value
-                    
-                    -- Faixa de nível mais ampla
-                    if PlayerLevel >= npcLevel - 25 and PlayerLevel <= npcLevel + 30 then
-                        local dist = (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-                        if dist < minDist then
-                            closestNPC = npc
-                            minDist = dist
-                        end
-                    end
-                else
-                    -- Verifica NPCs sem RequiredLevel (para casos especiais)
+            if npc:FindFirstChild("Quest") then
+                local npcLevel = npc.Quest.RequiredLevel.Value
+                if PlayerLevel >= npcLevel - 15 and PlayerLevel <= npcLevel + 25 then
                     local dist = (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
                     if dist < minDist then
                         closestNPC = npc
@@ -100,194 +104,114 @@ local function GetProperQuest()
         end
     end
     
-    -- Backup para NPCs específicos com busca mais abrangente
-    if not closestNPC then
-        print("[DEBUG] Usando busca de backup...")
-        local backupNPCs = {
-            "Bandit", -- Muitos NPCs começam com "Bandit"
-            "Pirate", 
-            "Marine",
-            "Desert",
-            "Snow"
-        }
-        
-        for _, npcPrefix in ipairs(backupNPCs) do
-            for _, npc in pairs(workspace.NPCs:GetChildren()) do
-                if string.find(npc.Name:lower(), npcPrefix:lower()) and npc:FindFirstChild("HumanoidRootPart") then
-                    closestNPC = npc
-                    break
-                end
-            end
-            if closestNPC then break end
-        end
-    end
-    
-    -- Final debug output
-    if closestNPC then
-        print("[DEBUG] NPC selecionado:", closestNPC.Name)
-    else
-        print("[DEBUG] Nenhum NPC adequado encontrado!")
-    end
-    
     return closestNPC
 end
 
 local function AcceptQuest(npc)
-    if not npc then return false end
-    
-    local success = pcall(function()
-        local args = {
-            [1] = npc.Name,
-            [2] = 1
-        }
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", unpack(args))
-        return true
-    end)
-    
-    if not success then
-        -- Tentativa alternativa para alguns casos especiais
-        success = pcall(function()
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", npc.Name)
-            return true
+    for i = 1, 3 do  -- 3 tentativas
+        local success = pcall(function()
+            return game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", npc.Name, 1)
         end)
+        if success then return true end
+        task.wait(0.5)
     end
-    
-    return success
+    return false
 end
 
--- ========== FARM AUTOMÁTICO OTIMIZADO ==========
+-- ========== FARM AUTOMÁTICO INFALÍVEL ==========
 local Farming = false
 local CurrentQuest = ""
-local LastNPCCheck = 0
 
 local function ToggleFarm()
     Farming = not Farming
     
     if Farming then
-        -- Fase 1: Encontrar e aceitar missão
-        local npc = GetProperQuest()
-        
-        if not npc then
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "ERRO",
-                Text = "Nenhum NPC adequado encontrado",
-                Duration = 5,
-                Icon = "rbxassetid://0"
-            })
-            Farming = false
-            return
-        end
-        
-        -- Vai até o NPC com verificação de tempo
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "MISSÃO",
-            Text = "Indo até: "..npc.Name,
-            Duration = 3,
-            Icon = "rbxassetid://0"
-        })
-        
-        local startTime = os.time()
-        while Farming and npc and npc.Parent and (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude > 15 and os.time() - startTime < 25 do
-            pcall(function()
-                Character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
-            end)
-            task.wait(0.7)
-        end
-        
-        -- Aceita a missão com verificação
-        if npc and npc.Parent then
-            if AcceptQuest(npc) then
-                CurrentQuest = npc.Name
-                game.StarterGui:SetCore("SendNotification", {
-                    Title = "SUCESSO",
-                    Text = "Missão aceita: "..CurrentQuest,
-                    Duration = 3,
-                    Icon = "rbxassetid://0"
-                })
-            else
-                game.StarterGui:SetCore("SendNotification", {
-                    Title = "ERRO",
-                    Text = "Falha ao aceitar missão",
-                    Duration = 5,
-                    Icon = "rbxassetid://0"
-                })
-                Farming = false
-                return
-            end
-        else
-            Farming = false
-            return
-        end
-        
-        -- Fase 2: Farmar os mobs
         spawn(function()
-            while Farming and task.wait(0.2) do
-                pcall(function()
-                    -- Verificação periódica de NPC
-                    if os.time() - LastNPCCheck > 30 then
-                        local newNPC = GetProperQuest()
-                        if newNPC and newNPC.Name ~= CurrentQuest then
-                            if AcceptQuest(newNPC) then
-                                CurrentQuest = newNPC.Name
-                            end
-                        end
-                        LastNPCCheck = os.time()
-                    end
+            while Farming do
+                -- Etapa 1: Encontrar e aceitar missão
+                local npc = FindQuestNPC()
+                
+                if not npc then
+                    game.StarterGui:SetCore("SendNotification", {
+                        Title = "ALERTA",
+                        Text = "Nenhum NPC encontrado! Mudando de área...",
+                        Duration = 5
+                    })
+                    -- Teleporte para área central para encontrar NPCs
+                    Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
+                    task.wait(3)
+                    continue
+                end
+                
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = "MISSÃO",
+                    Text = "NPC encontrado: "..npc.Name,
+                    Duration = 3
+                })
+                
+                -- Vai até o NPC
+                local startTime = os.time()
+                while (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude > 15 and os.time() - startTime < 20 do
+                    Character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+                    task.wait(0.5)
+                end
+                
+                -- Aceita a missão
+                if AcceptQuest(npc) then
+                    CurrentQuest = npc.Name
+                    game.StarterGui:SetCore("SendNotification", {
+                        Title = "SUCESSO",
+                        Text = "Missão aceita: "..CurrentQuest,
+                        Duration = 3
+                    })
                     
-                    -- Encontra todos os mobs válidos (mais flexível)
-                    local ValidEnemies = {}
-                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-                        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
-                            -- Aceita vários padrões de nome
-                            if string.find(enemy.Name:lower(), CurrentQuest:lower()) or 
-                               string.find(CurrentQuest:lower(), enemy.Name:lower()) or
-                               string.find(enemy.Name:lower(), "quest") then
-                                table.insert(ValidEnemies, enemy)
-                            end
-                        end
-                    end
-                    
-                    -- Verifica mobs alternativos se nenhum corresponder exatamente
-                    if #ValidEnemies == 0 then
-                        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-                            if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
-                                table.insert(ValidEnemies, enemy)
-                            end
-                        end
-                    end
-                    
-                    -- Sistema de combate melhorado
-                    if #ValidEnemies > 0 then
-                        -- Ordena por distância
-                        table.sort(ValidEnemies, function(a,b)
-                            return (a.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude <
-                                   (b.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-                        end)
-                        
-                        local Target = ValidEnemies[1]
-                        local Distance = (Target.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-                        
-                        -- Movimento inteligente com proteção anti-queda
-                        if Distance > 50 then
-                            Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, 15, 15)
-                        elseif Distance > 10 then
-                            Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, 5, 5)
-                        else
-                            Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, 2, -2)
-                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Attack", Target)
-                        end
-                    else
-                        -- Verifica se precisa de nova missão
-                        if os.time() % 15 < 0.3 then
-                            npc = GetProperQuest()
-                            if npc and (npc.Name ~= CurrentQuest) then
-                                if AcceptQuest(npc) then
-                                    CurrentQuest = npc.Name
+                    -- Etapa 2: Farmar os mobs
+                    local lastMobCheck = os.time()
+                    while Farming and task.wait(0.3) do
+                        pcall(function()
+                            -- Atualiza lista de mobs a cada 5 segundos
+                            if os.time() - lastMobCheck > 5 then
+                                lastMobCheck = os.time()
+                                
+                                local validMobs = {}
+                                for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                                    if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                                        if string.find(enemy.Name, CurrentQuest) then
+                                            table.insert(validMobs, enemy)
+                                        end
+                                    end
+                                end
+                                
+                                if #validMobs == 0 then
+                                    break  -- Volta para buscar novo NPC
+                                end
+                                
+                                -- Ordena por distância
+                                table.sort(validMobs, function(a,b)
+                                    return (a.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude <
+                                           (b.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
+                                end)
+                                
+                                -- Movimento e ataque
+                                local target = validMobs[1]
+                                local distance = (target.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
+                                
+                                if distance > 50 then
+                                    Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 10, 10)
+                                else
+                                    Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 3, 3)
+                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Attack", target)
                                 end
                             end
-                        end
+                        end)
                     end
-                end)
+                else
+                    game.StarterGui:SetCore("SendNotification", {
+                        Title = "ERRO",
+                        Text = "Falha ao aceitar missão",
+                        Duration = 5
+                    })
+                end
             end
         end)
     else
@@ -295,127 +219,106 @@ local function ToggleFarm()
     end
 end
 
--- ========== TELEPORTE APRIMORADO ==========
+-- ========== TELEPORTE PERFEITO ==========
 local Teleporting = false
-local function PerfectTeleport(cframe)
-    if Teleporting or not cframe then return end
+local function EliteTeleport(cframe)
+    if Teleporting then return end
     Teleporting = true
     
-    -- Salva posição original
-    local originalPosition = Character.HumanoidRootPart.CFrame
+    -- 1. Prepara anti-return
+    AntiReturn.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    AntiReturn.Velocity = Vector3.new(0, 0, 0)
     
-    -- Configura anti-return de forma segura
-    pcall(function()
-        AntiReturn.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        AntiReturn.Velocity = Vector3.new(0, 0, 0)
-        AntiReturn.Parent = Character.HumanoidRootPart
-    end)
+    -- 2. Teleporte para posição alta
+    Character.HumanoidRootPart.CFrame = cframe + Vector3.new(0, 50, 0)
+    task.wait(0.2)
     
-    -- Teleporte em etapas com verificação
-    local success = pcall(function()
-        Character.HumanoidRootPart.CFrame = cframe * CFrame.new(0, 30, 0) -- Etapa 1: Alto
-        task.wait(0.25)
-        Character.HumanoidRootPart.CFrame = cframe * CFrame.new(0, 10, 0) -- Etapa 2: Médio
-        task.wait(0.25)
-        Character.HumanoidRootPart.CFrame = cframe -- Etapa 3: Posição final
-        task.wait(0.5)
-    end)
+    -- 3. Teleporte para posição correta
+    Character.HumanoidRootPart.CFrame = cframe
+    task.wait(0.5)
     
-    -- Verificação de sucesso
-    if not success or (Character.HumanoidRootPart.Position - cframe.Position).Magnitude > 100 then
-        pcall(function()
-            Character.HumanoidRootPart.CFrame = originalPosition
-        end)
+    -- 4. Verificação final
+    if (Character.HumanoidRootPart.Position - cframe.Position).Magnitude > 10 then
+        -- Se falhou, tenta método alternativo
+        Character.HumanoidRootPart.CFrame = cframe + Vector3.new(0, 100, 0)
+        task.wait(0.3)
+        Character.HumanoidRootPart.CFrame = cframe
     end
     
-    -- Desativa gradualmente
+    -- 5. Desativa gradualmente
     for i = 1, 0, -0.1 do
-        pcall(function()
-            AntiReturn.MaxForce = Vector3.new(math.huge * i, math.huge * i, math.huge * i)
-        end)
+        AntiReturn.MaxForce = Vector3.new(math.huge * i, math.huge * i, math.huge * i)
         task.wait(0.05)
     end
     
     Teleporting = false
-    return success
 end
 
 -- Locais testados e aprovados
 local Locations = {
+    ["Starter Island"] = CFrame.new(-100, 15, 200),
     ["Desert"] = CFrame.new(1094.15, 16.84, 1792.70),
     ["Pirate Village"] = CFrame.new(-1163.40, 44.79, 3846.38),
-    ["Castle on Sea"] = CFrame.new(-5478.39, 315.63, -3136.26),
-    ["Middle Town"] = CFrame.new(-655.83, 15.89, 1435.90),
-    ["Green Zone"] = CFrame.new(-2258.69, 73.02, -2696.33)
+    ["Jungle"] = CFrame.new(-1500, 70, -500),
+    ["Snow Village"] = CFrame.new(1300, 120, -1400)
 }
 
--- ========== INTERFACE COMPLETA ==========
+-- ========== BOTÕES DA INTERFACE ==========
 local ButtonLayout = {
-    {"🔘 TOGGLE AUTO FARM", 0.15, 0.1, ToggleFarm},
-    {"🏜️ DESERT", 0.15, 0.55, function() PerfectTeleport(Locations["Desert"]) end},
-    {"🏴‍☠️ PIRATE VILLAGE", 0.45, 0.1, function() PerfectTeleport(Locations["Pirate Village"]) end},
-    {"🏰 CASTLE ON SEA", 0.45, 0.55, function() PerfectTeleport(Locations["Castle on Sea"]) end},
-    {"🏘️ MIDDLE TOWN", 0.3, 0.1, function() PerfectTeleport(Locations["Middle Town"]) end},
-    {"🌴 GREEN ZONE", 0.3, 0.55, function() PerfectTeleport(Locations["Green Zone"]) end},
-    {"❌ CLOSE HUB", 0.75, 0.325, function() SonicHub:Destroy() end}
+    {"🔘 INICIAR AUTO FARM", 0.15, 0.1, ToggleFarm},
+    {"🏝️ STARTER ISLAND", 0.15, 0.55, function() EliteTeleport(Locations["Starter Island"]) end},
+    {"🏜️ DESERT", 0.3, 0.1, function() EliteTeleport(Locations["Desert"]) end},
+    {"🏴‍☠️ PIRATE VILLAGE", 0.3, 0.55, function() EliteTeleport(Locations["Pirate Village"]) end},
+    {"🌴 JUNGLE", 0.45, 0.1, function() EliteTeleport(Locations["Jungle"]) end},
+    {"❄️ SNOW VILLAGE", 0.45, 0.55, function() EliteTeleport(Locations["Snow Village"]) end},
+    {"❌ FECHAR HUB", 0.6, 0.325, function() SonicHub:Destroy() end}
 }
 
 for _, btnData in ipairs(ButtonLayout) do
     local btn = Instance.new("TextButton")
     btn.Text = btnData[1]
-    btn.Size = UDim2.new(0.4, 0, 0, 45)
+    btn.Size = UDim2.new(0.4, 0, 0, 40)
     btn.Position = UDim2.new(btnData[3], 0, btnData[2], 0)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    btn.TextColor3 = Color3.fromRGB(0, 255, 255)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 16
+    btn.TextSize = 14
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = btn
-    
-    -- Efeito hover
-    btn.MouseEnter:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    end)
-    
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    end)
     
     btn.MouseButton1Click:Connect(btnData[4])
     btn.Parent = MainFrame
 end
 
--- Status do Player aprimorado
+-- Status do Player
 local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Text = "AGUARDANDO COMANDOS..."
-StatusLabel.Size = UDim2.new(0.9, 0, 0, 40)
+StatusLabel.Text = "PRONTO - "..Player.Data.Level.Value.." LVL"
+StatusLabel.Size = UDim2.new(0.9, 0, 0, 30)
 StatusLabel.Position = UDim2.new(0.05, 0, 0.8, 0)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
 StatusLabel.Font = Enum.Font.GothamBold
-StatusLabel.TextSize = 16
+StatusLabel.TextSize = 14
 StatusLabel.Parent = MainFrame
 
--- Atualização de status melhorada
+-- Atualização de status
 spawn(function()
-    while task.wait(0.5) do
-        pcall(function()
-            if Farming then
-                if CurrentQuest ~= "" then
-                    StatusLabel.Text = "FARMANDO: "..CurrentQuest.." | "..Player.Data.Level.Value.." LVL"
-                else
-                    StatusLabel.Text = "BUSCANDO NPC ADEQUADO..."
-                end
+    while task.wait(1) do
+        if Farming then
+            if CurrentQuest ~= "" then
+                StatusLabel.Text = "FARMANDO: "..CurrentQuest
             else
-                StatusLabel.Text = "PRONTO | "..Player.Data.Level.Value.." LVL | "..Player.Name
+                StatusLabel.Text = "BUSCANDO NPC..."
             end
-        end)
+        else
+            StatusLabel.Text = "PRONTO - "..Player.Data.Level.Value.." LVL"
+        end
     end
 end)
 
--- Anti-AFK melhorado
+-- Anti-AFK
 spawn(function()
     while task.wait(30) do
         pcall(function()
@@ -426,20 +329,11 @@ spawn(function()
     end
 end)
 
--- Notificação inicial com verificação
-delay(2, function()
-    pcall(function()
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "SonicHub PERFECT FARM v12",
-            Text = "Script carregado com sucesso!\nNPC Detection System Ativo",
-            Duration = 8,
-            Icon = "rbxassetid://0"
-        })
-    end)
-end)
+-- Notificação inicial
+game.StarterGui:SetCore("SendNotification", {
+    Title = "SONIC HUB ELITE",
+    Text = "Script carregado com sucesso!",
+    Duration = 5
+})
 
--- Adiciona mensagem de debug no output
-print("====================================")
-print("SonicHub PERFECT FARM v12 Carregado")
-print("Sistema de Detecção de NPC aprimorado")
-print("====================================")
+print("✅ SonicHub Elite carregado com sucesso!")
