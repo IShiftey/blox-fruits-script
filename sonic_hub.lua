@@ -1,113 +1,76 @@
 --[[
-  🚀 SonicHub PRO MAX - Blox Fruits Script 🚀
-  Versão 8.5 | Teleporte estável + Auto Farm funcional
+  🚀 SonicHub ULTIMATE FIX - Blox Fruits Script 🚀
+  Versão 10.1 | Correções Completas
 ]]
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Player = Players.LocalPlayer
-
+-- Configuração inicial segura
+repeat task.wait() until game:IsLoaded()
+local Player = game:GetService("Players").LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
-local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- BodyVelocity para segurar no ar durante voo
-local function createAntiReturn()
-    local old = Character:FindFirstChild("AntiReturn")
-    if old then old:Destroy() end
-    local bv = Instance.new("BodyVelocity")
-    bv.Name = "AntiReturn"
-    bv.Velocity = Vector3.new(0, 0, 0)
-    bv.MaxForce = Vector3.new(0, 0, 0)
-    bv.Parent = Character:WaitForChild("HumanoidRootPart")
-    return bv
-end
-
-local AntiReturn = createAntiReturn()
+-- Sistema Anti-Return Aprimorado
+local AntiReturn = Instance.new("BodyVelocity")
+AntiReturn.Velocity = Vector3.new(0, 25, 0)
+AntiReturn.MaxForce = Vector3.new(0, 0, 0) -- Inicia desativado
+AntiReturn.Parent = Character:WaitForChild("HumanoidRootPart")
 
 -- Atualiza referências ao respawn
-Player.CharacterAdded:Connect(function(char)
-    Character = char
+Player.CharacterAdded:Connect(function(newChar)
+    Character = newChar
     Humanoid = Character:WaitForChild("Humanoid")
-    AntiReturn = createAntiReturn()
+    AntiReturn = Instance.new("BodyVelocity")
+    AntiReturn.Velocity = Vector3.new(0, 25, 0)
+    AntiReturn.MaxForce = Vector3.new(0, 0, 0)
+    AntiReturn.Parent = Character:WaitForChild("HumanoidRootPart")
 end)
 
 -- Remove GUI antiga
-local existingGUI = PlayerGui:FindFirstChild("SonicHubPROMAX")
-if existingGUI then
-    existingGUI:Destroy()
+if game:GetService("CoreGui"):FindFirstChild("SonicHubUltimateFix") then
+    game:GetService("CoreGui").SonicHubUltimateFix:Destroy()
 end
 
--- Criar GUI básica (pode personalizar conforme já fez)
+-- Interface Ampliada
 local SonicHub = Instance.new("ScreenGui")
-SonicHub.Name = "SonicHubPROMAX"
-SonicHub.ResetOnSpawn = false
-SonicHub.Parent = PlayerGui
+SonicHub.Name = "SonicHubUltimateFix"
+SonicHub.Parent = game:GetService("CoreGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.Size = UDim2.new(0, 450, 0, 500)
+MainFrame.Position = UDim2.new(0.05, 0, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Text = "SONIC HUB ULTIMATE FIX"
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+Title.Parent = MainFrame
+
 MainFrame.Parent = SonicHub
 
-local UICornerMain = Instance.new("UICorner")
-UICornerMain.CornerRadius = UDim.new(0, 10)
-UICornerMain.Parent = MainFrame
-
--- (Cabeçalho, botões, status label aqui — mantidos de seu código anterior)
-
--- Variáveis de controle
-local Farming = false
-local CurrentQuest = ""
-local lastNPCCheck = 0
-local Teleporting = false
-
--- Teleporte suave e seguro (voo) para destino, bloqueando comandos de movimento durante ele
-local function SafeTeleport(destinationCFrame)
-    if Teleporting then return false end
-    Teleporting = true
-
-    pcall(function()
-        AntiReturn.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        AntiReturn.Velocity = Vector3.new(0, 25, 0)
-        -- Sobe 20 para evitar colisão
-        Character.HumanoidRootPart.CFrame = destinationCFrame + Vector3.new(0, 20, 0)
-        task.wait(0.5)
-        -- Desce 3 para perto do chão
-        Character.HumanoidRootPart.CFrame = destinationCFrame + Vector3.new(0, 3, 0)
-        task.wait(0.3)
-        AntiReturn.MaxForce = Vector3.new(0, 0, 0)
-        AntiReturn.Velocity = Vector3.new(0, 0, 0)
-    end)
-
-    Teleporting = false
-    return true
-end
-
--- Função para encontrar o NPC da missão com base no nível e teleporte até ele
-local function FindAndFlyToNPC()
-    local lvlVal = Player:FindFirstChild("Data") and Player.Data:FindFirstChild("Level")
-    if not lvlVal then
-        warn("Player.Data.Level não encontrado")
-        return nil
-    end
-    local playerLevel = lvlVal.Value
-    local npcsFolder = workspace:FindFirstChild("NPCs")
-    if not npcsFolder then
-        warn("workspace.NPCs não encontrado")
-        return nil
-    end
-
+-- Sistema de Missões Automático Aprimorado
+local function GetBestQuest()
+    local PlayerLevel = Player.Data.Level.Value
     local closestNPC, minDist = nil, math.huge
-    for _, npc in pairs(npcsFolder:GetChildren()) do
-        local quest = npc:FindFirstChild("Quest")
-        local hrp = npc:FindFirstChild("HumanoidRootPart")
-        if quest and quest:FindFirstChild("RequiredLevel") and hrp then
-            local npcLevel = quest.RequiredLevel.Value
-            if playerLevel >= (npcLevel - 15) and playerLevel <= (npcLevel + 30) then
-                local dist = (hrp.Position - Character.HumanoidRootPart.Position).Magnitude
+    
+    -- Verifica todos os NPCs com quests
+    for _, npc in pairs(workspace.NPCs:GetChildren()) do
+        if npc:FindFirstChild("Quest") and npc.Quest:FindFirstChild("RequiredLevel") then
+            local npcLevel = npc.Quest.RequiredLevel.Value
+            local levelDiff = math.abs(PlayerLevel - npcLevel)
+            
+            -- Aceita NPCs até 25 níveis acima/abaixo
+            if levelDiff <= 25 then
+                local dist = (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
                 if dist < minDist then
                     closestNPC = npc
                     minDist = dist
@@ -115,104 +78,144 @@ local function FindAndFlyToNPC()
             end
         end
     end
+    
+    return closestNPC
+end
 
-    if closestNPC then
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "NPC ENCONTRADO",
-            Text = "Voando até: " .. closestNPC.Name,
-            Duration = 4
-        })
-
-        -- Teleporte seguro até NPC
-        if not SafeTeleport(closestNPC.HumanoidRootPart.CFrame.Position and CFrame.new(closestNPC.HumanoidRootPart.Position) or closestNPC.HumanoidRootPart.CFrame) then
-            return nil
-        end
-
-        -- Espera estar perto para aceitar a missão
-        local startTime = tick()
-        while (closestNPC.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude > 12 and (tick() - startTime < 15) do
-            -- Ajusta suavemente a posição, mas cuidado para não entrar em loop de movimento/teleporte com o loop de farm
-            task.wait(0.2)
-        end
-
-        if (closestNPC.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude <= 15 then
-            local success, err = pcall(function()
-                return ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", closestNPC.Name, 1)
+-- Função para ir até o NPC
+local function GoToNPC(npc)
+    local startTime = os.time()
+    local maxAttempts = 3
+    
+    for attempt = 1, maxAttempts do
+        -- Ativa anti-return durante movimento
+        AntiReturn.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        
+        while (npc.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude > 15 and os.time() - startTime < 20 do
+            pcall(function()
+                Character.HumanoidRootPart.CFrame = npc.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
             end)
-            if success then
-                return closestNPC.Name
-            else
-                warn("Erro ao iniciar missão: " .. tostring(err))
-            end
+            task.wait(0.5)
         end
-    else
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "NPC NÃO ENCONTRADO",
-            Text = "Nenhum NPC disponível para seu nível.",
-            Duration = 5
-        })
+        
+        -- Tenta aceitar a missão
+        local success = pcall(function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", npc.Name, 1)
+        end)
+        
+        if success then
+            AntiReturn.MaxForce = Vector3.new(0, 0, 0)
+            return npc.Name
+        end
     end
+    
+    AntiReturn.MaxForce = Vector3.new(0, 0, 0)
     return nil
 end
 
--- Função para ligar/desligar farm automático
+-- Farm Automático Completo
+local Farming = false
+local CurrentQuest = ""
+
 local function ToggleFarm()
     Farming = not Farming
+    
     if Farming then
-        CurrentQuest = FindAndFlyToNPC()
+        -- Busca e vai até o NPC
+        local npc = GetBestQuest()
+        if not npc then
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "ERRO",
+                Text = "Nenhum NPC de missão encontrado!",
+                Duration = 5
+            })
+            Farming = false
+            return
+        end
+        
+        CurrentQuest = GoToNPC(npc)
         if not CurrentQuest then
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "ERRO",
+                Text = "Falha ao aceitar missão",
+                Duration = 5
+            })
             Farming = false
             return
         end
 
+        -- Inicia o farm
         spawn(function()
-            while Farming do
-                local now = tick()
-                if now - lastNPCCheck > 15 then
-                    CurrentQuest = FindAndFlyToNPC() or CurrentQuest
-                    lastNPCCheck = now
-                end
-
+            while Farming and task.wait(0.3) do
                 pcall(function()
-                    local enemiesFolder = workspace:FindFirstChild("Enemies")
-                    if enemiesFolder then
-                        local validEnemies = {}
-                        for _, enemy in pairs(enemiesFolder:GetChildren()) do
-                            local hrp = enemy:FindFirstChild("HumanoidRootPart")
-                            local humanoid = enemy:FindFirstChild("Humanoid")
-                            if hrp and humanoid and humanoid.Health > 0 and string.find(enemy.Name, CurrentQuest) then
-                                table.insert(validEnemies, enemy)
-                            end
+                    -- Encontra mobs da missão atual
+                    local ValidEnemies = {}
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if string.find(enemy.Name, CurrentQuest) and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                            table.insert(ValidEnemies, enemy)
                         end
-
-                        if #validEnemies > 0 then
-                            table.sort(validEnemies, function(a, b)
-                                return (a.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude <
-                                    (b.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-                            end)
-
-                            local target = validEnemies[1]
-                            local dist = (target.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-
-                            if dist > 50 then
-                                -- Teleporte chegando perto, evitar movimentação bruta para não cancelar "voo"
-                                Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 10, 10)
-                            else
-                                Character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 3, 3)
-                                ReplicatedStorage.Remotes.CommF_:InvokeServer("Attack", target)
-                            end
+                    end
+                    
+                    if #ValidEnemies > 0 then
+                        -- Ordena por distância
+                        table.sort(ValidEnemies, function(a,b)
+                            return (a.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude <
+                                   (b.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
+                        end)
+                        
+                        local Target = ValidEnemies[1]
+                        local Distance = (Target.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
+                        
+                        -- Movimento inteligente
+                        if Distance > 50 then
+                            Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, 10, 10)
+                        else
+                            Character.HumanoidRootPart.CFrame = Target.HumanoidRootPart.CFrame * CFrame.new(0, 3, 3)
+                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Attack", Target)
+                        end
+                    else
+                        -- Se não achar mobs, verifica se precisa de nova missão
+                        if os.time() % 15 < 0.3 then
+                            CurrentQuest = GoToNPC(GetBestQuest()) or CurrentQuest
                         end
                     end
                 end)
-                task.wait(0.3)
             end
         end)
     else
         CurrentQuest = ""
+        AntiReturn.MaxForce = Vector3.new(0, 0, 0)
     end
 end
 
--- Locais para teleporte
+-- Teleporte Aprimorado (Anti-Return)
+local Teleporting = false
+local function SafeTeleport(cframe)
+    if Teleporting then return end
+    Teleporting = true
+    
+    pcall(function()
+        -- Prepara anti-return
+        AntiReturn.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        AntiReturn.Velocity = Vector3.new(0, 25, 0)
+        
+        -- Teleporte em duas etapas
+        Character.HumanoidRootPart.CFrame = cframe + Vector3.new(0, 25, 0) -- Posição alta
+        task.wait(0.3)
+        Character.HumanoidRootPart.CFrame = cframe -- Posição final
+        task.wait(0.5)
+        
+        -- Desativa anti-return gradualmente
+        for i = 1, 0, -0.1 do
+            AntiReturn.MaxForce = Vector3.new(math.huge * i, math.huge * i, math.huge * i)
+            task.wait(0.05)
+        end
+    end)
+    
+    Teleporting = false
+end
+
+-- Locais Atualizados (Testados)
 local Locations = {
     ["Desert"] = CFrame.new(1094.15, 16.84, 1792.70),
     ["Pirate Village"] = CFrame.new(-1163.40, 44.79, 3846.38),
@@ -221,56 +224,62 @@ local Locations = {
     ["Green Zone"] = CFrame.new(-2258.69, 73.02, -2696.33)
 }
 
--- Função para teleporte por botão, controla o estado para evitar conflito
-local function OnTeleportClick(locationCFrame)
-    if Farming then
-        Farming = false -- Para farm para evitar conflito de movimentação
-        task.wait(0.5) -- Espera parar
-    end
-
-    SafeTeleport(locationCFrame)
-end
-
--- Criar botões GUI com ligação correta às funções
-local ButtonsData = {
-    {"🔘 TOGGLE AUTO FARM", ToggleFarm},
-    {"🏜️ DESERT", function() OnTeleportClick(Locations["Desert"]) end},
-    {"🏴‍☠️ PIRATE VILLAGE", function() OnTeleportClick(Locations["Pirate Village"]) end},
-    {"🏰 CASTLE ON SEA", function() OnTeleportClick(Locations["Castle on Sea"]) end},
-    {"🏘️ MIDDLE TOWN", function() OnTeleportClick(Locations["Middle Town"]) end},
-    {"🌴 GREEN ZONE", function() OnTeleportClick(Locations["Green Zone"]) end},
-    {"❌ CLOSE HUB", function() SonicHub:Destroy() end}
+-- Criação de Botões em Grade
+local ButtonLayout = {
+    {"🔘 TOGGLE AUTO FARM", 0.15, 0.1, ToggleFarm},
+    {"🏜️ DESERT", 0.15, 0.55, function() SafeTeleport(Locations["Desert"]) end},
+    {"🏴‍☠️ PIRATE VILLAGE", 0.3, 0.1, function() SafeTeleport(Locations["Pirate Village"]) end},
+    {"🏰 CASTLE ON SEA", 0.3, 0.55, function() SafeTeleport(Locations["Castle on Sea"]) end},
+    {"🏘️ MIDDLE TOWN", 0.45, 0.1, function() SafeTeleport(Locations["Middle Town"]) end},
+    {"🌴 GREEN ZONE", 0.45, 0.55, function() SafeTeleport(Locations["Green Zone"]) end},
+    {"❌ CLOSE HUB", 0.6, 0.325, function() SonicHub:Destroy() end}
 }
 
-local ButtonsContainer = MainFrame:FindFirstChildWhichIsA("ScrollingFrame") or Instance.new("ScrollingFrame", MainFrame)
--- Caso seu container não tenha sido criado, substituir por seu container correto
-
-for _, info in ipairs(ButtonsData) do
-    CreateButton(info[1], info[2])
+for _, btnData in ipairs(ButtonLayout) do
+    local btn = Instance.new("TextButton")
+    btn.Text = btnData[1]
+    btn.Size = UDim2.new(0.4, 0, 0, 40)
+    btn.Position = UDim2.new(btnData[3], 0, btnData[2], 0)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 14
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = btn
+    
+    btn.MouseButton1Click:Connect(btnData[4])
+    btn.Parent = MainFrame
 end
 
--- Status Label (Atualização aqui --- use o código do seu script)
+-- Status do Player
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Text = "AGUARDANDO..."
+StatusLabel.Size = UDim2.new(0.9, 0, 0, 30)
+StatusLabel.Position = UDim2.new(0.05, 0, 0.8, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.TextSize = 14
+StatusLabel.Parent = MainFrame
 
+-- Atualização de status
 spawn(function()
     while task.wait(1) do
         if Farming then
             if CurrentQuest ~= "" then
-                StatusLabel.Text = "FARMANDO: " .. CurrentQuest
+                StatusLabel.Text = "FARMANDO: "..CurrentQuest
             else
                 StatusLabel.Text = "BUSCANDO NPC..."
             end
         else
-            local lvlText = "N/A"
-            local data = Player:FindFirstChild("Data")
-            if data and data:FindFirstChild("Level") then
-                lvlText = tostring(data.Level.Value)
-            end
-            StatusLabel.Text = "PRONTO - " .. lvlText .. " LVL"
+            StatusLabel.Text = "PRONTO - "..Player.Data.Level.Value.." LVL"
         end
     end
 end)
 
--- Anti-AFK simples
+-- Sistema Anti-AFK
 spawn(function()
     while task.wait(30) do
         pcall(function()
@@ -281,9 +290,9 @@ spawn(function()
     end
 end)
 
--- Notificação inicial
+-- Notificação Inicial
 game.StarterGui:SetCore("SendNotification", {
-    Title = "SonicHub PRO MAX",
+    Title = "SonicHub ULTIMATE FIX",
     Text = "Script carregado com sucesso!",
     Duration = 5
 })
