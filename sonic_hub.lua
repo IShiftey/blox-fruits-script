@@ -1,6 +1,6 @@
 --[[
   🚀 SonicHub Premium - Blox Fruits Ultimate 🚀
-  Versão 3.0 | Auto-Update | Design Premium
+  Versão 3.0.1 | Auto-Update | Design Premium
 ]]
 
 -- Configurações globais
@@ -8,7 +8,6 @@ local VERSION = "3.0.1"
 local GITHUB_URL = "https://raw.githubusercontent.com/IShiftey/blox-fruits-script/main/sonic_hub.lua"
 local PLAYER = game:GetService("Players").LocalPlayer
 
--- Verificação de jogo
 local validGames = {
     [2753915549] = "Blox Fruits",
     [4442272183] = "Blox Fruits (Second Sea)",
