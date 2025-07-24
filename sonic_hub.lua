@@ -13,16 +13,23 @@ AntiReturn.Velocity = Vector3.new(0, 25, 0)
 AntiReturn.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 AntiReturn.Parent = Character:WaitForChild("HumanoidRootPart")
 
+-- Remove GUI antiga se existir, para evitar duplicidade
+local existingGUI = Player:FindFirstChild("PlayerGui") and Player.PlayerGui:FindFirstChild("SonicHubULTIMATE")
+if existingGUI then
+    existingGUI:Destroy()
+end
+
 -- Interface Ampliada
 local SonicHub = Instance.new("ScreenGui")
 SonicHub.Name = "SonicHubULTIMATE"
-SonicHub.Parent = game.CoreGui
+SonicHub.Parent = Player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 450, 0, 500)
 MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
 MainFrame.BorderSizePixel = 0
+MainFrame.Parent = SonicHub
 
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 12)
@@ -37,8 +44,6 @@ Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 20
 Title.Parent = MainFrame
-
-MainFrame.Parent = SonicHub
 
 -- Sistema Inteligente de Busca de NPCs (Métodos Combinados)
 local function FindBestNPC()
@@ -219,4 +224,26 @@ local function ToggleFarm()
     end
 end
 
--- (O resto do código permanece igual ao anterior...)
+-- Você pode adicionar um botão na GUI para ligar desligar o farm,
+-- aqui vai um exemplo simples para você expandir:
+
+local FarmButton = Instance.new("TextButton")
+FarmButton.Size = UDim2.new(0, 150, 0, 40)
+FarmButton.Position = UDim2.new(0.5, -75, 0, 60)
+FarmButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+FarmButton.TextColor3 = Color3.new(1, 1, 1)
+FarmButton.Font = Enum.Font.GothamBold
+FarmButton.TextSize = 18
+FarmButton.Text = "Ativar Farm"
+FarmButton.Parent = MainFrame
+
+FarmButton.MouseButton1Click:Connect(function()
+    ToggleFarm()
+    if Farming then
+        FarmButton.Text = "Desativar Farm"
+    else
+        FarmButton.Text = "Ativar Farm"
+    end
+end)
+
+-- Fique à vontade para pedir funções extras, melhorias ou ajuda com outras partes!
